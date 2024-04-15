@@ -37,23 +37,35 @@ def visualize_bipartite_graph(graph, left_vertices, right_vertices,pltflg):
 
     pos = nx.bipartite_layout(G, left_vertices)
     if pltflg =='Y':
-        nx.draw(G, pos, with_labels=True, node_color='skyblue', node_size=500, font_size=10)
+        nx.draw(G, pos, with_labels=True, node_color='skyblue', node_size=100, font_size=5)
         plt.title("Bipartite Graph")
         plt.show()
     return G
 
 def plot_matching(matching):
-    graph = defaultdict(list)
-    left_vertices = set()
-    right_vertices = set()
+    graph = nx.Graph()
+    left_vertices = set(matching.keys())
+    right_vertices = set(matching.values())
 
-    for idx, clause in enumerate(matching):
+    graph.add_nodes_from(left_vertices, bipartite=0)
+    graph.add_nodes_from(right_vertices, bipartite=1)
 
-        left_vertices.add(idx)
-        right_vertices.add(clause)
-        graph[idx].append(clause)
+     # Add edges between left and right vertices based on the matching
+    for left_vertex, right_vertex in matching.items():
+        graph.add_edge(left_vertex, right_vertex)
 
-    visualize_bipartite_graph(graph, left_vertices, right_vertices,'Y')
+    # Separate nodes by their bipartite attribute for plotting
+    left_nodes = {node for node, attr in graph.nodes(data=True) if attr['bipartite'] == 0}
+    right_nodes = set(graph) - left_nodes
+
+    # Plot the graph
+    pos = nx.bipartite_layout(graph, left_nodes)
+    nx.draw(graph, pos, with_labels=True, node_color='skyblue', node_size=500, font_size=10)
+    plt.title('Bipartite Graph Matching')
+    plt.show()
+
+
+    # visualize_bipartite_graph(graph, left_vertices, right_vertices,'Y')
 
 
 def find_truth_assignments(maximal_matching, clauses):
@@ -110,7 +122,7 @@ def main():
                 print("Assignment completed")
                 end = time.time()
                 print("Time elapsed (in seconds) : "+ str(end-start)) 
-                # print("PLotting the matching")
+                print("PLotting the matching")
                 # plot_matching(matching_assignment)
                 write_csv(assignment, OUTPUT_ASSIGNMENT)
                 write_matching(matching_assignment, OUTPUT_MATCHING)
